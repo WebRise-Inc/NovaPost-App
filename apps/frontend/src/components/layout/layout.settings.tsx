@@ -41,7 +41,6 @@ import { extend } from 'dayjs';
 import { useSearchParams } from 'next/navigation';
 import { CheckPayment } from '@gitroom/frontend/components/layout/check.payment';
 import { ChromeExtensionComponent } from '@gitroom/frontend/components/layout/chrome.extension.component';
-import { LanguageComponent } from '@gitroom/frontend/components/layout/language.component';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import i18next from '@gitroom/react/translation/i18next';
 import { MediaSettingsLayout } from '@gitroom/frontend/components/launches/helpers/media.settings.component';
@@ -96,7 +95,7 @@ export const LayoutSettings = ({ children }: { children: ReactNode }) => {
               >
                 <div className="min-w-[55px]">
                   <Image
-                    src={isGeneral ? '/postiz.svg' : '/logo.svg'}
+                    src={isGeneral ? '/postiz-icon.svg' : '/logo.svg'}
                     width={55}
                     height={53}
                     alt="Logo"
@@ -145,7 +144,6 @@ export const LayoutSettings = ({ children }: { children: ReactNode }) => {
                 id="systray-buttons"
                 className="flex items-center justify-self-end gap-[8px] order-2 md:order-3"
               >
-                <LanguageComponent />
                 <ChromeExtensionComponent />
                 <ModeComponent />
                 <SettingsComponent />
@@ -161,7 +159,7 @@ export const LayoutSettings = ({ children }: { children: ReactNode }) => {
                       <h1 className="text-3xl [@media(max-width:1024px)]:text-xl">
                         {t(
                           'join_10000_entrepreneurs_who_use_postiz',
-                          'Join 10,000+ Entrepreneurs Who Use Postiz'
+                          'Join 10,000+ Entrepreneurs Who Use NovaPost'
                         )}
                         <br />
                         {t(

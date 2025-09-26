@@ -32,7 +32,6 @@ import { MantineWrapper } from '@gitroom/react/helpers/mantine.wrapper';
 import { Impersonate } from '@gitroom/frontend/components/layout/impersonate';
 import { Title } from '@gitroom/frontend/components/layout/title';
 import { TopMenu } from '@gitroom/frontend/components/layout/top.menu';
-import { LanguageComponent } from '@gitroom/frontend/components/layout/language.component';
 import { ChromeExtensionComponent } from '@gitroom/frontend/components/layout/chrome.extension.component';
 import NotificationComponent from '@gitroom/frontend/components/notifications/notification.component';
 import { BillingAfter } from '@gitroom/frontend/components/new-layout/billing.after';
@@ -117,7 +116,6 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                         <ModeComponent />
                       </div>
                       <div className="w-[1px] h-[20px] bg-blockSeparator" />
-                      <LanguageComponent />
                       <ChromeExtensionComponent />
                       <div className="w-[1px] h-[20px] bg-blockSeparator" />
                       <AttachToFeedbackIcon />
