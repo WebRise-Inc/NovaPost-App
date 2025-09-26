@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import useCookie from 'react-use-cookie';
 const ModeComponent = () => {
-  const [mode, setMode] = useCookie('mode', 'dark');
+  const [mode, setMode] = useCookie('mode', 'light');
 
   const changeMode = useCallback(() => {
     setMode(mode === 'dark' ? 'light' : 'dark');
