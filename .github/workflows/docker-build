@@ -1,0 +1,64 @@
+name: Build & Push (GHCR, Classic PAT)
+
+on:
+  push:
+    branches: [ main ]          # change if needed
+  workflow_dispatch: {}
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: webrise-inc            # org namespace (lowercase)
+  IMAGE_NAME: novapost-app      # choose your image name (lowercase)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read            # read repo code
+      # packages: write         # not needed when using PAT; we auth with PAT below
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (enables multi-arch, safe to keep)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR (Classic PAT)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}         # your GitHub username at runtime
+          password: ${{ secrets.GHCR_PAT }}     # classic PAT with read/write:packages
+
+      # Pick ONE of the two build steps below:
+
+      # A) amd64-only (uses less RAM, good default)
+      - name: Build & Push (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          file: Dockerfile.dev                   # adjust if you use another Dockerfile
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:np-${{ github.run_number }}
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # B) Multi-arch (amd64+arm64). Uncomment this block and delete the amd64 block above if you want both.
+      # - name: Build & Push (multi-arch)
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     file: Dockerfile.dev
+      #     context: .
+      #     push: true
+      #     platforms: linux/amd64,linux/arm64
+      #     tags: |
+      #       ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:np-${{ github.run_number }}
+      #       ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:latest
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
