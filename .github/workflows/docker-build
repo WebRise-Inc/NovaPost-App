@@ -1,4 +1,4 @@
-name: Build & Push (GHCR, Classic PAT)
+name: "Build & Push (GHCR, Classic PAT)"
 
 on:
   push:
