@@ -43,4 +43,13 @@ jobs:
             git push origin ${{ env.TARGET_BRANCH }}
           fi
 
-      - name: Open PR i
+      - name: Open PR if there was a conflict
+        if: steps.merge.outputs.conflict == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(sync): merge upstream/${{ env.UPSTREAM_BRANCH }} into ${{ env.TARGET_BRANCH }}"
+          title: "Sync upstream → ${{ env.TARGET_BRANCH }} (manual conflict resolution required)"
+          body: >
+            This automated sync hit merge conflicts. Please resolve in this PR.
+          branch: bot/sync-upstream-${{ github.run_id }}
+          base: ${{ env.TARGET_BRANCH }}
