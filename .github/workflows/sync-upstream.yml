@@ -1,0 +1,46 @@
+name: Sync fork from upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # daily at 06:00 UTC
+  workflow_dispatch: {}       # allow manual run from Actions tab
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  UPSTREAM_REPO: gitroomhq/postiz-app   # <— upstream owner/repo
+  UPSTREAM_BRANCH: main
+  TARGET_BRANCH: main                    # <— your fork's working branch
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git
+          git fetch upstream ${{ env.UPSTREAM_BRANCH }}
+
+      - name: Merge upstream into fork
+        id: merge
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # try a clean merge; if it conflicts, mark it and stop pushing
+          if ! git merge --no-edit upstream/${{ env.UPSTREAM_BRANCH }}; then
+            echo "conflict=true" >> $GITHUB_OUTPUT
+          fi
+          # push only if there was no conflict
+          if [ -z "${{ steps.merge.outputs.conflict }}" ]; then
+            git push origin ${{ env.TARGET_BRANCH }}
+          fi
+
+      - name: Open PR i
