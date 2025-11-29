@@ -1,8 +1,37 @@
 import { sign, verify } from 'jsonwebtoken';
 import { hashSync, compareSync } from 'bcrypt';
-import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+// @ts-ignore
+import EVP_BytesToKey from 'evp_bytestokey';
+const algorithm = 'aes-256-cbc';
+const { keyLength, ivLength } = crypto.getCipherInfo(algorithm);
 
+function deriveLegacyKeyIv(secret: string) {
+  const { keyLength, ivLength } = crypto.getCipherInfo(algorithm); // 32, 16
+  const pass = Buffer.isBuffer(secret) ? secret : Buffer.from(secret ?? '', 'utf8');
+
+  // evp_bytestokey: key length in **bits**, IV length in **bytes**
+  const { key, iv } = EVP_BytesToKey(pass, null, keyLength * 8, ivLength, 'md5');
+
+  if (key.length !== keyLength || iv.length !== ivLength) {
+    throw new Error(`Derived wrong sizes (key=${key.length}, iv=${iv.length})`);
+  }
+  return { key, iv };
+}
+
+export function decrypt_legacy_using_IV(hexCiphertext: string) {
+  const { key, iv } = deriveLegacyKeyIv(process.env.JWT_SECRET);
+  const decipher = crypto.createDecipheriv(algorithm, key, iv);
+  const out = Buffer.concat([decipher.update(hexCiphertext, 'hex'), decipher.final()]);
+  return out.toString('utf8');
+}
+
+export function encrypt_legacy_using_IV(utf8Plaintext: string) {
+  const { key, iv } = deriveLegacyKeyIv(process.env.JWT_SECRET);
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  const out = Buffer.concat([cipher.update(utf8Plaintext, 'utf8'), cipher.final()]);
+  return out.toString('hex');
+}
 export class AuthService {
   private static cryptoParams: { key: Buffer; iv: Buffer };
 
@@ -20,61 +49,10 @@ export class AuthService {
   }
 
   static fixedEncryption(value: string) {
-    // encryption algorithm
-    const algorithm = 'aes-256-cbc';
-    const { key, iv } = this.getCryptoParams();
-    const cipher = crypto.createCipheriv(algorithm, key, iv);
-
-    // encrypt the plain text
-    let encrypted = cipher.update(value, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
-    return encrypted;
+    return encrypt_legacy_using_IV(value);
   }
 
   static fixedDecryption(hash: string) {
-    const algorithm = 'aes-256-cbc';
-    const { key, iv } = this.getCryptoParams();
-    const decipher = crypto.createDecipheriv(algorithm, key, iv);
-
-    // decrypt the encrypted text
-    let decrypted = decipher.update(hash, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
-  }
-
-  private static getCryptoParams() {
-    if (!this.cryptoParams) {
-      const secret = process.env.JWT_SECRET ?? '';
-      if (!secret) {
-        throw new Error('JWT_SECRET is not defined');
-      }
-
-      const keyLen = 32;
-      const ivLen = 16;
-      const totalLen = keyLen + ivLen;
-      const derived = Buffer.alloc(totalLen);
-      const secretBuffer = Buffer.from(secret, 'utf8');
-      let previous = Buffer.alloc(0);
-      let offset = 0;
-
-      // Replicates OpenSSL EVP_BytesToKey(password, md5, no salt)
-      while (offset < totalLen) {
-        const hash = crypto.createHash('md5');
-        hash.update(previous);
-        hash.update(secretBuffer);
-        previous = hash.digest();
-        previous.copy(derived, offset);
-        offset += previous.length;
-      }
-
-      this.cryptoParams = {
-        key: derived.subarray(0, keyLen),
-        iv: derived.subarray(keyLen, totalLen),
-      };
-    }
-
-    return this.cryptoParams;
+    return decrypt_legacy_using_IV(hash);
   }
 }
