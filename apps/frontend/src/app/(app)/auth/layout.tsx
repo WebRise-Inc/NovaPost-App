@@ -8,25 +8,12 @@ export default async function AuthLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="dark !bg-black lbox">
+    <div className="bg-[#0E0E0E] flex flex-1 p-[12px] gap-[12px] min-h-screen w-screen text-white">
+      {/*<style>{`html, body {overflow-x: hidden;}`}</style>*/}
       <ReturnUrlComponent />
-      <div className="absolute start-0 top-0 z-[0] h-[100vh] w-[100vw] overflow-hidden bg-loginBg bg-contain bg-no-repeat bg-left-top" />
-      <div className="relative z-[1] px-3 lg:pr-[100px] xs:mt-[70px] flex justify-center lg:justify-end items-center h-[100vh] w-[100vw] overflow-hidden">
-        <div className="w-full max-w-lg h-[614px] flex flex-col bg-loginBox bg-no-repeat bg-contain">
-          <div className="w-full relative" />
-          <div className="p-[32px] w-full h-[660px] text-textColor rbox">
-            {children}
-          </div>
-          <div className="flex flex-1 flex-col">
-            <div className="flex-1 flex justify-end">
-              <div className="absolute top-0 bg-gradient-to-t from-customColor9 w-[1px] translate-x-[22px] h-full" />
-            </div>
-            <div>
-              <div className="absolute end-0 bg-gradient-to-l from-customColor9 h-[1px] translate-y-[60px] w-full" />
-            </div>
-          </div>
-          <div className="absolute top-0 bg-gradient-to-t from-customColor9 w-[1px] -translate-x-[22px] h-full" />
-          <div className="absolute end-0 bg-gradient-to-l from-customColor9 h-[1px] -translate-y-[22px] w-full" />
+      <div className="flex flex-col py-[40px] px-[20px] flex-1 lg:w-[600px] lg:flex-none rounded-[12px] text-white p-[12px] bg-[#1A1919]">
+        <div className="w-full max-w-[440px] mx-auto justify-center gap-[20px] h-full flex flex-col text-white">
+          <div className="flex">{children}</div>
         </div>
       </div>
     </div>
