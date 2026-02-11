@@ -35,6 +35,7 @@ import { TopMenu } from '@gitroom/frontend/components/layout/top.menu';
 import { ChromeExtensionComponent } from '@gitroom/frontend/components/layout/chrome.extension.component';
 import NotificationComponent from '@gitroom/frontend/components/notifications/notification.component';
 import { OrganizationSelector } from '@gitroom/frontend/components/layout/organization.selector';
+import { StreakComponent } from '@gitroom/frontend/components/layout/streak.component';
 import { PreConditionComponent } from '@gitroom/frontend/components/layout/pre-condition.component';
 import { AttachToFeedbackIcon } from '@gitroom/frontend/components/new-layout/sentry.feedback.component';
 import { FirstBillingComponent } from '@gitroom/frontend/components/billing/first.billing.component';
@@ -99,7 +100,7 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                     <div
                       className={clsx(
                         'fixed h-full w-[64px] start-[17px] flex flex-1 top-0',
-                        user?.admin && 'pt-[60px]'
+                        user?.admin && 'pt-[60px] max-h-[1000px]:w-[500px]'
                       )}
                     >
                       <div className="flex flex-col h-full gap-[32px] flex-1 py-[12px]">
@@ -114,6 +115,8 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                         <Title />
                       </div>
                       <div className="flex gap-[20px] text-textItemBlur">
+                        <StreakComponent />
+                        <div className="w-[1px] h-[20px] bg-blockSeparator" />
                         <OrganizationSelector />
                         <div className="hover:text-newTextColor">
                           <ModeComponent />
