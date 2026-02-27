@@ -58,7 +58,7 @@ export default async function Auth({
                 >
                   <div className="max-w-[55px]">
                     <Image
-                      src={'/postiz-icon.svg'}
+                      src={'/novapost/novapost-icon.svg'}
                       width={55}
                       height={55}
                       alt="Logo"

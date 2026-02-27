@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128" fill="none">
+  <g aria-label="NovaPost" role="img">
+    <polygon points="32 12 32 116 140 64" fill="#7C3AED"/>
+    <polygon points="60 64 112 64 40 108" fill="#1F1147"/>
+    <text x="176" y="86" fill="#111827" font-family="'Inter', 'Segoe UI', sans-serif" font-size="64" font-weight="700">NovaPost</text>
+  </g>
+</svg>

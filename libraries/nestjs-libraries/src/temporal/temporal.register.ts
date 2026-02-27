@@ -1,57 +1,37 @@
-import {
-  Global,
-  Injectable,
-  Logger,
-  Module,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Global, Injectable, Module, OnModuleInit } from '@nestjs/common';
 import { TemporalService } from 'nestjs-temporal-core';
 import { Connection } from '@temporalio/client';
 
 @Injectable()
 export class TemporalRegister implements OnModuleInit {
-  private readonly _logger = new Logger(TemporalRegister.name);
-
   constructor(private _client: TemporalService) {}
 
   async onModuleInit(): Promise<void> {
-    try {
-      const connection = this._client?.client?.getRawClient()
-        ?.connection as Connection;
+    if (process.env.TEMPORAL_TLS === 'true') {
+      return;
+    }
+    const connection = this._client?.client?.getRawClient()
+      ?.connection as Connection;
 
-      if (!connection?.operatorService) {
-        this._logger.warn(
-          'Temporal operator service unavailable, skipping search-attribute registration.',
-        );
-        return;
-      }
+    const { customAttributes } =
+      await connection.operatorService.listSearchAttributes({
+        namespace: process.env.TEMPORAL_NAMESPACE || 'default',
+      });
 
-      const { customAttributes } =
-        await connection.operatorService.listSearchAttributes({
-          namespace: process.env.TEMPORAL_NAMESPACE || 'default',
-        });
+    const neededAttribute = ['organizationId', 'postId'];
+    const missingAttributes = neededAttribute.filter(
+      (attr) => !customAttributes[attr]
+    );
 
-      const neededAttribute = ['organizationId', 'postId'];
-      const missingAttributes = neededAttribute.filter(
-        (attr) => !customAttributes[attr],
-      );
-
-      if (missingAttributes.length > 0) {
-        await connection.operatorService.addSearchAttributes({
-          namespace: process.env.TEMPORAL_NAMESPACE || 'default',
-          searchAttributes: missingAttributes.reduce((all, current) => {
-            // @ts-ignore
-            all[current] = 1;
-            return all;
-          }, {}),
-        });
-      }
-    } catch (error) {
-      this._logger.warn(
-        `Temporal unavailable, skipping search-attribute registration: ${
-          (error as Error)?.message || error
-        }`,
-      );
+    if (missingAttributes.length > 0) {
+      await connection.operatorService.addSearchAttributes({
+        namespace: process.env.TEMPORAL_NAMESPACE || 'default',
+        searchAttributes: missingAttributes.reduce((all, current) => {
+          // @ts-ignore
+          all[current] = 1;
+          return all;
+        }, {}),
+      });
     }
   }
 }

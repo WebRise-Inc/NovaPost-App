@@ -41,10 +41,18 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <html>
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/novapost/favicon.svg" type="image/svg+xml" />
+        {!!process.env.DATAFAST_WEBSITE_ID && (
+          <Script
+            data-website-id={process.env.DATAFAST_WEBSITE_ID}
+            data-domain="novapost.com"
+            src="https://datafa.st/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body
-        className={clsx(jakartaSans.className, 'light text-primary !bg-primary')}
+        className={clsx(jakartaSans.className, 'dark text-primary !bg-primary')}
       >
         <VariableContextComponent
           storageProvider={
@@ -87,7 +95,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <DubAnalytics />
             <FacebookComponent />
             <Plausible
-              domain={!!process.env.IS_GENERAL ? 'postiz.com' : 'gitroom.com'}
+              domain={!!process.env.IS_GENERAL ? 'novapost.com' : 'gitroom.com'}
             >
               <PHProvider
                 phkey={process.env.NEXT_PUBLIC_POSTHOG_KEY}

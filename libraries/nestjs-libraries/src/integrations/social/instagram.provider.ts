@@ -33,7 +33,7 @@ export class InstagramProvider
     'instagram_manage_comments',
     'instagram_manage_insights',
   ];
-  override maxConcurrentJob = 200;
+  override maxConcurrentJob = 400;
   editor = 'normal' as const;
   dto = InstagramDto;
   maxLength() {
@@ -67,7 +67,7 @@ export class InstagramProvider
     if (body.indexOf('2207081') > -1) {
       return {
         type: 'bad-body' as const,
-        value: 'This account doesn\'t support Trial Reels',
+        value: "This account doesn't support Trial Reels",
       };
     }
 
@@ -98,7 +98,7 @@ export class InstagramProvider
 
     if (body.indexOf('2207050') > -1) {
       return {
-        type: 'refresh-token' as const,
+        type: 'bad-body' as const,
         value: 'Instagram user is restricted',
       };
     }
@@ -269,6 +269,13 @@ export class InstagramProvider
       };
     }
 
+    if (body.indexOf('190,') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value: 'The account is missing some permissions to perform this action, please re-add the account and allow all permissions',
+      };
+    }
+
     if (body.indexOf('36001') > -1) {
       return {
         type: 'bad-body' as const,
@@ -295,6 +302,13 @@ export class InstagramProvider
       return {
         type: 'bad-body' as const,
         value: 'Unknown error, please try again later or contact support',
+      };
+    }
+
+    if (body.indexOf('param collaborators is not allowed') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value: 'Collaborators are not allowed for carousel'
       };
     }
 
@@ -471,7 +485,7 @@ export class InstagramProvider
             ? `&caption=${encodeURIComponent(firstPost.message)}`
             : ``;
         const isCarousel =
-          (firstPost?.media?.length || 0) > 1 ? `&is_carousel_item=true` : ``;
+          (firstPost?.media?.length || 0) > 1 && !isStory ? `&is_carousel_item=true` : ``;
         const mediaType =
           m.path.indexOf('.mp4') > -1
             ? firstPost?.media?.length === 1
@@ -535,7 +549,38 @@ export class InstagramProvider
       }) || []
     );
 
-    if (medias.length === 1) {
+    if (isStory && medias.length > 1) {
+      // Stories don't support carousels - publish each media as a separate story
+      let lastMediaId = '';
+      let lastPermalink = '';
+      for (const mediaCreationId of medias) {
+        const { id: mediaId } = await (
+          await this.fetch(
+            `https://${type}/v20.0/${id}/media_publish?creation_id=${mediaCreationId}&access_token=${accessToken}&field=id`,
+            {
+              method: 'POST',
+            }
+          )
+        ).json();
+        lastMediaId = mediaId;
+
+        const { permalink } = await (
+          await this.fetch(
+            `https://${type}/v20.0/${mediaId}?fields=permalink&access_token=${accessToken}`
+          )
+        ).json();
+        lastPermalink = permalink;
+      }
+
+      return [
+        {
+          id: firstPost.id,
+          postId: lastMediaId,
+          releaseURL: lastPermalink,
+          status: 'success',
+        },
+      ];
+    } else if (medias.length === 1) {
       const { id: mediaId } = await (
         await this.fetch(
           `https://${type}/v20.0/${id}/media_publish?creation_id=${medias[0]}&access_token=${accessToken}&field=id`,
