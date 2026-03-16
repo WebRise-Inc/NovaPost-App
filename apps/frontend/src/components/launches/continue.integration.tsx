@@ -77,6 +77,19 @@ export const ContinueIntegration: FC<{
       };
     }
 
+    if (provider === 'mewe') {
+      const hash =
+        typeof window !== 'undefined'
+          ? window.location.hash.substring(1)
+          : '';
+      const hashParams = new URLSearchParams(hash);
+      return {
+        state: hashParams.get('state') || searchParams.state || '',
+        code: hashParams.get('loginRequestToken') || '',
+        refresh: searchParams.refresh || '',
+      };
+    }
+
     return searchParams;
   }, []);
 
@@ -194,7 +207,9 @@ export const ContinueIntegration: FC<{
 
       try {
         // Use public or authenticated endpoint based on the flow
-        const endpoint = `/integrations/provider/${twoStepState.integrationId}/connect`;
+        const endpoint = logged
+          ? `/integrations/provider/${twoStepState.integrationId}/connect`
+          : `/integrations/public/provider/${twoStepState.integrationId}/connect`;
 
         const response = await fetch(endpoint, {
           method: 'POST',
