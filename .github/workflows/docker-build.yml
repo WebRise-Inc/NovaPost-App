@@ -2,7 +2,8 @@ name: "Build & Push (GHCR, Classic PAT)"
 
 on:
   push:
-    branches: [ main ]          # change if needed
+    branches:
+      - '**'
   workflow_dispatch: {}
 
 env:
@@ -19,6 +20,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set image tags
+        id: image_tags
+        shell: bash
+        run: |
+          SAFE_REF_NAME="$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')"
+
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            {
+              echo "tags<<EOF"
+              echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:np-${{ github.run_number }}"
+              echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:latest"
+              echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:${SAFE_REF_NAME}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "tags<<EOF"
+              echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:${SAFE_REF_NAME}"
+              echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:${SAFE_REF_NAME}-${{ github.run_number }}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set up QEMU (enables multi-arch, safe to keep)
         uses: docker/setup-qemu-action@v3
@@ -57,8 +81,6 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-              ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:np-${{ github.run_number }}
-              ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.image_tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
